@@ -125,11 +125,12 @@ def get_legal_moves(board, row, col, piece):
 
 def main():
     global selected_piece, dragging
+    turn = 'w'  # White starts
 
     win = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption('Chess Game')
     images = load_images()
-    board = starting_position  # Use the initial board setup
+    board = [row[:] for row in starting_position]  # Ensure board is a mutable copy
 
     running = True
     while running:
@@ -140,8 +141,11 @@ def main():
         if selected_piece:
             row, col = selected_piece
             piece = board[row][col]
-            legal_moves = get_legal_moves(board, row, col, piece)
-            draw_legal_moves(win, legal_moves)
+
+            # ✅ Only highlight if it's the current player's turn
+            if piece and piece[0] == turn:
+                legal_moves = get_legal_moves(board, row, col, piece)
+                draw_legal_moves(win, legal_moves)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -151,7 +155,9 @@ def main():
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = pygame.mouse.get_pos()
                 row, col = y // SQUARE_SIZE, x // SQUARE_SIZE
-                if board[row][col]:  # Check if a piece is selected
+
+                # ✅ Ensure player can only select their own pieces
+                if board[row][col] and board[row][col][0] == turn:
                     selected_piece = (row, col)
                     dragging = True
 
@@ -159,18 +165,26 @@ def main():
                 if dragging:
                     x, y = pygame.mouse.get_pos()
                     new_row, new_col = y // SQUARE_SIZE, x // SQUARE_SIZE
-                    # Check if the move is legal
-                    piece = board[selected_piece[0]][selected_piece[1]]
-                    legal_moves = get_legal_moves(board, selected_piece[0], selected_piece[1], piece)
 
-                    # Only move if the destination is legal
-                    if (new_row, new_col) in legal_moves:
-                        move_piece(board, selected_piece, (new_row, new_col))
+                    # Get selected piece
+                    piece = board[selected_piece[0]][selected_piece[1]]
+
+                    # ✅ Ensure only current player's turn
+                    if piece and piece[0] == turn:
+                        legal_moves = get_legal_moves(board, selected_piece[0], selected_piece[1], piece)
+
+                        # Only move if the destination is legal
+                        if (new_row, new_col) in legal_moves:
+                            move_piece(board, selected_piece, (new_row, new_col))
+
+                            # ✅ Switch turns after a valid move
+                            turn = 'b' if turn == 'w' else 'w'
 
                     selected_piece = None
                     dragging = False
 
         pygame.display.update()
+
 
 def move_piece(board, start, end):
     start_row, start_col = start
@@ -188,8 +202,6 @@ def move_piece(board, start, end):
     # ✅ Move the piece & clear the old position
     board[end_row][end_col] = board[start_row][start_col]
     board[start_row][start_col] = None
-
-
 
 if __name__ == '__main__':
     main()
