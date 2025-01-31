@@ -72,25 +72,25 @@ def get_legal_moves(board, row, col, piece):
 
     # Check for pawn movement
     if piece[1] == 'p':
-        direction = 1 if piece[0] == 'w' else -1  # White moves down (increase row), Black moves up (decrease row)
-
+        if piece[0] == 'w':
+            directions = 1
+        else:
+            directions = -1
+            # White moves down (increase row), Black moves up (decrease row)
         # Normal move (1 square forward)
-        if 0 <= row + direction < 8 and board[row + direction][col] is None:
-            legal_moves.append((row + direction, col))
-
+        if 0 <= row + directions < 8 and board[row + directions][col] is None:
+            legal_moves.append((row + directions, col))
         # First move (2 squares forward), only on starting row
         if (piece[0] == 'w' and row == 2) or (piece[0] == 'b' and row == 7):
             # Check if both squares are empty
-            if board[row + direction][col] is None and board[row + 2 * direction][col] is None:
-                legal_moves.append((row + 2 * direction, col))
-
+            if board[row + directions][col] is None and board[row + 2 * directions][col] is None:
+                legal_moves.append((row + 2 * directions, col))
         # Capture diagonally (only for enemy pieces)
         for dx in [-1, 1]:
-            if 0 <= row + direction < 8 and 0 <= col + dx < 8:
-                target_piece = board[row + direction][col + dx]
+            if 0 <= row + directions < 8 and 0 <= col + dx < 8:
+                target_piece = board[row + directions][col + dx]
                 if target_piece and target_piece[0] != piece[0]:  # Enemy piece
-                    legal_moves.append((row + direction, col + dx))
-
+                    legal_moves.append((row + directions, col + dx))
 
     elif piece[1] == 'n':  # Knight
         for dx, dy in directions['n']:
