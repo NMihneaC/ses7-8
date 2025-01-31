@@ -119,10 +119,6 @@ def get_legal_moves(board, row, col, piece):
 
     return legal_moves
 
-def draw_legal_moves(win, legal_moves):
-    for move in legal_moves:
-        pygame.draw.circle(win, (0, 255, 0), (move[1] * SQUARE_SIZE + SQUARE_SIZE // 2, move[0] * SQUARE_SIZE + SQUARE_SIZE // 2), 15)
-
 
 def main():
     global selected_piece, dragging
