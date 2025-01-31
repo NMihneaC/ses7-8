@@ -78,7 +78,7 @@ def get_legal_moves(board, row, col, piece):
             legal_moves.append((row + direction, col))
 
             # First move (2 squares forward), only on starting row
-            if (piece[0] == 'w' and row == 7) or (piece[0] == 'b' and row == 2):
+            if (piece[0] == 'w' and row == 6) or (piece[0] == 'b' and row == 1):
                 if board[row + 2 * direction][col] is None:
                     legal_moves.append((row + 2 * direction, col))
 
