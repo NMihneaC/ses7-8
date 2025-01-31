@@ -70,27 +70,26 @@ def get_legal_moves(board, row, col, piece):
         'k': [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]  # King
     }
 
-    # Check for pawn movement
     if piece[1] == 'p':
-        if piece[0] == 'w':
-            directions = 1
-        else:
-            directions = -1
-            # White moves down (increase row), Black moves up (decrease row)
+        direction = -1 if piece[0] == 'w' else 1  # White moves down, Black moves up
+
         # Normal move (1 square forward)
-        if 0 <= row + directions < 8 and board[row + directions][col] is None:
-            legal_moves.append((row + directions, col))
-        # First move (2 squares forward), only on starting row
-        if (piece[0] == 'w' and row == 2) or (piece[0] == 'b' and row == 7):
-            # Check if both squares are empty
-            if board[row + directions][col] is None and board[row + 2 * directions][col] is None:
-                legal_moves.append((row + 2 * directions, col))
-        # Capture diagonally (only for enemy pieces)
+        if 0 <= row + direction < 8 and board[row + direction][col] is None:
+            legal_moves.append((row + direction, col))
+
+            # First move (2 squares forward), only on starting row
+            if (piece[0] == 'w' and row == 7) or (piece[0] == 'b' and row == 2):
+                if board[row + 2 * direction][col] is None:
+                    legal_moves.append((row + 2 * direction, col))
+
+        # Capture diagonally (only if an enemy piece is there)
         for dx in [-1, 1]:
-            if 0 <= row + directions < 8 and 0 <= col + dx < 8:
-                target_piece = board[row + directions][col + dx]
-                if target_piece and target_piece[0] != piece[0]:  # Enemy piece
-                    legal_moves.append((row + directions, col + dx))
+            new_row, new_col = row + direction, col + dx
+            if 0 <= new_row < 8 and 0 <= new_col < 8:
+                target_piece = board[new_row][new_col]
+                if target_piece and target_piece[0] != piece[0]:  # Check if it's an enemy piece
+                    legal_moves.append((new_row, new_col))
+
 
     elif piece[1] == 'n':  # Knight
         for dx, dy in directions['n']:
@@ -173,62 +172,23 @@ def main():
 
         pygame.display.update()
 
-def main():
-    global selected_piece, dragging
-
-    win = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption('Chess Game')
-    images = load_images()
-    board = starting_position  # Use the initial board setup
-
-    running = True
-    while running:
-        draw_board(win)
-        draw_pieces(win, board, images)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                x, y = pygame.mouse.get_pos()
-                row, col = y // SQUARE_SIZE, x // SQUARE_SIZE
-                if board[row][col]:  # Check if a piece is there
-                    selected_piece = (row, col)
-                    dragging = True
-
-            elif event.type == pygame.MOUSEBUTTONUP:
-                if dragging:
-                    x, y = pygame.mouse.get_pos()
-                    new_row, new_col = y // SQUARE_SIZE, x // SQUARE_SIZE
-                    move_piece(board, selected_piece, (new_row, new_col))
-                    selected_piece = None
-                    dragging = False
-
-        pygame.display.update()
-
 def move_piece(board, start, end):
     start_row, start_col = start
     end_row, end_col = end
-
-    # Ensure the start square is not empty
-    if board[start_row][start_col] is None:
-        return  # No piece to move
 
     piece = board[start_row][start_col]  # The piece to move
 
     # Get the legal moves for the piece
     legal_moves = get_legal_moves(board, start_row, start_col, piece)
 
-    # Prevent moving out of bounds or to an illegal square
+    # ✅ Prevent illegal moves
     if (end_row, end_col) not in legal_moves:
-        return  # Illegal move, so don't move the piece
+        return  # Do nothing if it's an invalid move
 
-    # Ensure the destination is either empty or has an enemy piece
-    if board[end_row][end_col] is None or board[end_row][end_col][0] != piece[0]:
-        board[end_row][end_col] = piece  # Move the piece
-        board[start_row][start_col] = None  # Clear the old position
+    # ✅ Move the piece & clear the old position
+    board[end_row][end_col] = board[start_row][start_col]
+    board[start_row][start_col] = None
+
 
 
 if __name__ == '__main__':
